@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include <sstream> 
+#include <sstream>
+#include <cmath>
 
 int HEADER_SIZE = 54;
 
@@ -138,16 +139,52 @@ int main(int argc, const char* argv[]) {
 		}
 	}
 
+	// for(int row = 0; row < height.intRepresentation; row++) {
+	// 	std::cout << " ================= Row: " << row << " =================" << std::endl;
+	// 	for(int col = 0; col < (width.intRepresentation * bytesPerPixel); col += bytesPerPixel) {
+	// 		int rowOffset = row * (width.intRepresentation * bytesPerPixel);
+	// 		std::cout << " Col: (";
+	// 		std::cout << (int)dataMap[rowOffset + col] << ","; // red
+	// 		std::cout << (int)dataMap[rowOffset + col + 1] << ","; // green
+	// 		std::cout << (int)dataMap[rowOffset + col + 2] << ")" << std::endl; // blue
+	// 	}
+	// }
+
+	unsigned int numPixels = width.intRepresentation * height.intRepresentation;
+	unsigned int* distanceMap = new unsigned int[numPixels];
+	int redBase = 0; // TODO: calculate these from the image OR have it specified by command line
+	int greenBase = 0;
+	int blueBase = 0;
 	for(int row = 0; row < height.intRepresentation; row++) {
-		std::cout << " ================= Row: " << row << " =================" << std::endl;
 		for(int col = 0; col < (width.intRepresentation * bytesPerPixel); col += bytesPerPixel) {
 			int rowOffset = row * (width.intRepresentation * bytesPerPixel);
-			std::cout << " Col: (";
-			std::cout << (int)dataMap[rowOffset + col] << ","; // red
-			std::cout << (int)dataMap[rowOffset + col + 1] << ","; // green
-			std::cout << (int)dataMap[rowOffset + col + 2] << ")" << std::endl; // blue
+			int redValue = (int)dataMap[rowOffset + col];
+			int greenValue = (int)dataMap[rowOffset + col + 1];
+			int blueValue = (int)dataMap[rowOffset + col + 2];
+			int distance = sqrt(pow(redValue - redBase, 2) + pow(greenValue - greenBase, 2) + 
+				pow(blueValue - blueBase, 2));
+			distanceMap[(row * width.intRepresentation) + (col / bytesPerPixel)] = distance;
 		}
 	}
+
+	for(int row = 0; row < height.intRepresentation; row++) {
+		for(int col = 0; col < width.intRepresentation; col++) {
+			int distance = distanceMap[(row * width.intRepresentation) + col];
+			if (distance == 0) {
+				std::cout << "*" << " ";
+			} else if (distance < 10) { // 1 char
+				std::cout << "*" << " ";
+			} else if (distance < 100) { // 2 chars
+				std::cout << "*" << " ";
+			} else if (distance < 200) { // 3 chars
+				std::cout << "!" << " ";
+			} else if (distance < 1000) {
+				std::cout << " " << " ";
+			}
+		}
+		std::cout << std::endl << std::endl;
+	}
+
 
 	delete[] dataMap;
 }
