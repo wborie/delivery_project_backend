@@ -123,31 +123,8 @@ int main(int argc, const char* argv[]) {
 			for(int col = 0; col < (width.intRepresentation * bytesPerPixel); col++) {
 				dataMap[((row * width.intRepresentation * bytesPerPixel)) + col] = 
 					dataMapCopy[(((height.intRepresentation - row - 1) * width.intRepresentation * bytesPerPixel) + col)];
-				// dataMap[((row * width.intRepresentation) + col)] =
-				// 	dataMapCopy[(((height.intRepresentation - row - 1) * width.intRepresentation) + col)];
-				// std::cout << (((height.intRepresentation - row - 1) * width.intRepresentation) + col) << "|";
-					// std::cout << ((row * width.intRepresentation) + col) << "|";
 			}
-			// std::cout << std::endl << std::endl;
 		}
-
-		// for(int i = 0; i < size; i++) {
-		// 	dataMapCopy[size - i - 1] = dataMap[i];
-		// }
-		// for(int row = 0; row < height.intRepresentation; row++) {
-		// 	for(int col = 0; col < width.intRepresentation; col++) {
-		// 		int rowOffset = bytesPerPixel * row * width.intRepresentation;
-		// 		dataMap[rowOffset + (bytesPerPixel * col)] = 
-		// 			dataMapCopy[rowOffset + (width.intRepresentation - col - 1)];
-		// 			for(int i = 0; i < bytesPerPixel; i++) { // if i = 0 , dataMapcopy[same - 3]
-		// 				dataMap[rowOffset + (bytesPerPixel * col)] = 
-		// 					dataMapCopy[(rowOffset + (width.intRepresentation - col - 1)) - (bytesPerPixel - 1 - i)];
-		// 			}
-		// 	}
-		// }
-		// for(int i = 0; i < size; i++) {
-		// 	dataMap[i] = dataMapCopy[size - i - 1];
-		// }
 		delete[] dataMapCopy;
 	}
 
@@ -171,17 +148,6 @@ int main(int argc, const char* argv[]) {
 			std::cout << (int)dataMap[rowOffset + col + 2] << ")" << std::endl; // blue
 		}
 	}
-
-	// for(int row = 0; row < height.intRepresentation; row++) {
-	// 	std::cout << " ================= Row: " << row << " =================" << std::endl;
-	// 	for(int col = 0; col < width.intRepresentation; col++) {
-	// 		unsigned char redPixelValue = dataMap[bytesPerPixel * ((row * width.intRepresentation) + col)];
-	// 		unsigned char greenPixelValue = dataMap[(bytesPerPixel * ((row * width.intRepresentation) + col)) + 1];
-	// 		unsigned char bluePixelValue = dataMap[(bytesPerPixel * ((row * width.intRepresentation) + col)) + 2];
-	// 		std::cout << " Col: " << col << "|" << (int)redPixelValue << "," << (int)greenPixelValue << "," 
-	// 		<< (int)bluePixelValue << "|" << std::endl;
-	// 	}
-	// }
 
 	delete[] dataMap;
 }
