@@ -184,6 +184,7 @@ int main(int argc, const char* argv[]) {
 					directionsMap[i] = 0;
 				}
 				findPaths(pixelMap, row, col, row, col, visited, directionsMap);
+				std::cout << row << " " << col << std::endl;
 				for(int i = 0; i < 11; i++) {
 					for(int j = 0; j < 11; j++) {
 						std::cout << directionsMap[(i * 11) + j] << " ";
@@ -246,7 +247,9 @@ void findPaths(unsigned int* pixelMap, int row, int col, int initialRow, int ini
 	} else if ((row == initialRow - 5 || row == initialRow + 5 || col == initialCol - 5 || col == initialCol + 5) && 
 		pixelMap[(row * 11) + col]) {
 		visited[(row * 11) + col] = 1;
-		directionsMap[(row * 11) + col] = 1;
+		directionsMap[((5 + (row - initialRow)) * 11) + (5 + (col - initialCol))] = 1;
+		// directionsMap[5 + (row - initialRow)][5 + (col - initialCol)] = 1;
+		// directionsMap[(row * 11) + col] = 1; // directionsMap[row][col] = 1
 		return;
 	} else if ((row == initialRow - 5 || row == initialRow + 5 || col == initialCol - 5 || col == initialCol + 5) && 
 		!pixelMap[(row * 11) + col]) {
@@ -282,6 +285,17 @@ unsigned int* getPixels() {
 	for(int i = 55; i < 121; i++) {
 		pixelMap[i] = 0;
 	}
+	// pixelMap[5] = 1;
+	// pixelMap[16] = 1;
+	// pixelMap[27] = 1;
+	// pixelMap[38] = 1;
+	// pixelMap[49] = 1;
+	// pixelMap[60] = 1;
+	// pixelMap[71] = 1;
+	// pixelMap[82] = 1;
+	// pixelMap[93] = 1;
+	// pixelMap[104] = 1;
+	// pixelMap[115] = 1;
 	// {
 	// 	0,0,0,0,0,0,0,0,0,0,0,
 	// 	0,0,0,0,0,0,0,0,0,0,0,
