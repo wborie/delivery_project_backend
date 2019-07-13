@@ -5,6 +5,10 @@
 
 int HEADER_SIZE = 54;
 
+unsigned int* getPixels();
+void findPaths(unsigned int* pixelMap, int row, int col, int initialRow, int initialCol, bool* visited, 
+	unsigned int* directionsMap);
+
 int main(int argc, const char* argv[]) {
 
 	if (argc != 2) {
@@ -57,7 +61,7 @@ int main(int argc, const char* argv[]) {
 	}
 	std::cout << "Header size: " << headerSize.intRepresentation << " bytes" << std::endl;
 	if (headerSize.intRepresentation != 40) {
-		std::cout << "This header is not supported. Exiting..." << std::endl;
+		std::cout << "This header may not be supported. Continuing..." << std::endl;
 	}
 
 	union {
@@ -102,8 +106,8 @@ int main(int argc, const char* argv[]) {
 	short int bytesPerPixel = bitsPerPixel.intRepresentation / 8;
 	std::cout << "Bits per Pixel: " << bitsPerPixel.intRepresentation << " bits (" << 
 		bytesPerPixel << " bytes)" << std::endl;; // Prints bits/bytes per pixel
-
-	for(int i = 0; i < 24; i++) { // Read 24 more bytes to finish reading the header
+		//40 or 124
+	for(int i = 0; i < headerSize.intRepresentation - 16; i++) { // Read 24 more bytes to finish reading the header
 		inputFile.get();
 	}
 
@@ -143,7 +147,7 @@ int main(int argc, const char* argv[]) {
 	// 	std::cout << " ================= Row: " << row << " =================" << std::endl;
 	// 	for(int col = 0; col < (width.intRepresentation * bytesPerPixel); col += bytesPerPixel) {
 	// 		int rowOffset = row * (width.intRepresentation * bytesPerPixel);
-	// 		std::cout << " Col: (";
+	// 		std::cout << " Col: " << (col / 4) << " (";
 	// 		std::cout << (int)dataMap[rowOffset + col] << ","; // red
 	// 		std::cout << (int)dataMap[rowOffset + col + 1] << ","; // green
 	// 		std::cout << (int)dataMap[rowOffset + col + 2] << ")" << std::endl; // blue
@@ -167,24 +171,129 @@ int main(int argc, const char* argv[]) {
 		}
 	}
 
-	for(int row = 0; row < height.intRepresentation; row++) {
-		for(int col = 0; col < width.intRepresentation; col++) {
-			int distance = distanceMap[(row * width.intRepresentation) + col];
-			if (distance == 0) {
-				std::cout << "*" << " ";
-			} else if (distance < 10) { // 1 char
-				std::cout << "*" << " ";
-			} else if (distance < 100) { // 2 chars
-				std::cout << "*" << " ";
-			} else if (distance < 200) { // 3 chars
-				std::cout << "!" << " ";
-			} else if (distance < 1000) {
-				std::cout << " " << " ";
+	unsigned int* pixelMap = getPixels();
+	for(int row = 0; row < 11; row++) {
+		for(int col = 0; col < 11; col++) {
+			if (pixelMap[(row * 11) + col]) { // Pixel is true
+				bool* visited = new bool[121];
+				for(int i = 0; i < 121; i++) {
+					visited[i] = 0;
+				}
+				unsigned int* directionsMap = new unsigned int[121];
+				for(int i = 0; i < 121; i++) {
+					directionsMap[i] = 0;
+				}
+				findPaths(pixelMap, row, col, row, col, visited, directionsMap);
+				for(int i = 0; i < 11; i++) {
+					for(int j = 0; j < 11; j++) {
+						std::cout << directionsMap[(i * 11) + j] << " ";
+					}
+					std::cout << std::endl;
+				}
+				std::cout << std::endl << "=============" << std::endl << std::endl;
+				delete[] visited;
+				delete[] directionsMap;
 			}
 		}
-		std::cout << std::endl << std::endl;
 	}
+	delete[] pixelMap;
+
+
+	// for(int row = 0; row < height.intRepresentation; row++) {
+	// 	for(int col = 0; col < width.intRepresentation; col++) {
+
+	// 	}
+	// }
+
+	// for(int row = 0; row < height.intRepresentation; row++) {
+	// 	for(int col = 0; col < width.intRepresentation; col++) {
+	// 		int distance = distanceMap[(row * width.intRepresentation) + col];
+	// 		if (distance == 0) {
+	// 			std::cout << "*" << " ";
+	// 		} else if (distance < 10) { // 1 char
+	// 			std::cout << "*" << " ";
+	// 		} else if (distance < 100) { // 2 chars
+	// 			std::cout << "*" << " ";
+	// 		} else if (distance < 200) { // 3 chars
+	// 			std::cout << "!" << " ";
+	// 		} else if (distance < 1000) {
+	// 			std::cout << " " << " ";
+	// 		}
+	// 	}
+	// 	std::cout << std::endl << std::endl;
+	// }
 
 
 	delete[] dataMap;
+}
+
+// Returns nothing, modifies the directionsMap
+void findPaths(unsigned int* pixelMap, int row, int col, int initialRow, int initialCol, bool* visited, 
+	unsigned int* directionsMap) {
+	if (row < 0 || col < 0 || row >= 11 || col >= 11 || row < initialRow - 5 || row > initialRow + 5 || 
+		col < initialCol - 5 || col > initialCol + 5) {
+		return;
+	} else if (visited[(row * 11) + col]) {
+		return;
+	// } else if (row == 0 && row != initialRow - 5) { // if too close to top, can't check 'up' direction
+	// 	return;
+	// } else if (col == 0 && col != initialCol - 5) { // if too close to left, can't check 'left' direction
+	// 	return;
+	// } else if (row == 11 && row != initialRow + 5) { // if too close to bottom, can't check 'down' direction
+	// 	return;
+	// } else if (col == 11 && col != initialCol + 5) { // if too close to right, can't check 'right' direction
+	// 	return;
+	} else if ((row == initialRow - 5 || row == initialRow + 5 || col == initialCol - 5 || col == initialCol + 5) && 
+		pixelMap[(row * 11) + col]) {
+		visited[(row * 11) + col] = 1;
+		directionsMap[(row * 11) + col] = 1;
+		return;
+	} else if ((row == initialRow - 5 || row == initialRow + 5 || col == initialCol - 5 || col == initialCol + 5) && 
+		!pixelMap[(row * 11) + col]) {
+		// directionsMap[row][col] = 0;
+		visited[(row * 11) + col] = 1;
+		return;
+	} else {
+		visited[(row * 11) + col] = 1;
+		if (row - 1 >= 0 && pixelMap[((row - 1) * 11) + col]) {
+			findPaths(pixelMap, row - 1, col, initialRow, initialCol, visited, directionsMap);
+		}
+		if (row + 1 < 11 && pixelMap[((row + 1) * 11) + col]) {
+			findPaths(pixelMap, row + 1, col, initialRow, initialCol, visited, directionsMap);
+		}
+		if (col - 1 >= 0 && pixelMap[(row * 11) + col - 1]) {
+			findPaths(pixelMap, row, col - 1, initialRow, initialCol, visited, directionsMap);
+		}
+		if (col + 1 < 11 && pixelMap[(row * 11) + col + 1]) {
+			findPaths(pixelMap, row, col + 1, initialRow, initialCol, visited, directionsMap);
+		}
+		return;
+	}
+}
+
+unsigned int* getPixels() {
+	unsigned int* pixelMap = new unsigned int[121]();
+	for(int i = 0; i < 44; i++) {
+		pixelMap[i] = 0;
+	}
+	for(int i = 44; i < 55; i++) {
+		pixelMap[i] = 1;
+	}
+	for(int i = 55; i < 121; i++) {
+		pixelMap[i] = 0;
+	}
+	// {
+	// 	0,0,0,0,0,0,0,0,0,0,0,
+	// 	0,0,0,0,0,0,0,0,0,0,0,
+	// 	0,0,0,0,0,0,0,0,0,0,0,
+	// 	0,0,0,0,0,0,0,0,0,0,0,
+	// 	1,1,1,1,1,1,1,1,1,1,1,
+	// 	0,0,0,0,0,0,0,0,0,0,0,
+	// 	0,0,0,0,0,0,0,0,0,0,0,
+	// 	0,0,0,0,0,0,0,0,0,0,0,
+	// 	0,0,0,0,0,0,0,0,0,0,0,
+	// 	0,0,0,0,0,0,0,0,0,0,0,
+	// 	0,0,0,0,0,0,0,0,0,0,0,
+	// });
+	return pixelMap;
 }
