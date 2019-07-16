@@ -4,10 +4,15 @@
 #include <cmath>
 
 int HEADER_SIZE = 54;
+int PIXEL_MAP_WIDTH = 11;
+int PIXEL_MAP_HEIGHT = 11;
+int DIRECTIONS_MAP_SIZE = 7; // Must be an odd number
+int DIRECTIONS_MAP_RADIUS = DIRECTIONS_MAP_SIZE / 2;
 
 unsigned int* getPixels();
-void findPaths(unsigned int* pixelMap, int row, int col, int initialRow, int initialCol, bool* visited, 
+void findDirectionsMap(unsigned int* pixelMap, int row, int col, int initialRow, int initialCol, bool* visited, 
 	unsigned int* directionsMap);
+void setNumDirections(unsigned int* pixelMap, int row, int col, unsigned int* directionsMap);
 
 int main(int argc, const char* argv[]) {
 
@@ -172,9 +177,9 @@ int main(int argc, const char* argv[]) {
 	}
 
 	unsigned int* pixelMap = getPixels();
-	for(int row = 0; row < 11; row++) {
-		for(int col = 0; col < 11; col++) {
-			if (pixelMap[(row * 11) + col]) { // Pixel is true
+	for(int row = 0; row < PIXEL_MAP_HEIGHT; row++) {
+		for(int col = 0; col < PIXEL_MAP_WIDTH; col++) {
+			if (pixelMap[(row * PIXEL_MAP_WIDTH) + col]) { // Pixel is true
 				bool* visited = new bool[121];
 				for(int i = 0; i < 121; i++) {
 					visited[i] = 0;
@@ -183,11 +188,12 @@ int main(int argc, const char* argv[]) {
 				for(int i = 0; i < 121; i++) {
 					directionsMap[i] = 0;
 				}
-				findPaths(pixelMap, row, col, row, col, visited, directionsMap);
+				findDirectionsMap(pixelMap, row, col, row, col, visited, directionsMap);
+				setNumDirections(pixelMap, row, col, directionsMap);
 				std::cout << row << " " << col << std::endl;
-				for(int i = 0; i < 11; i++) {
-					for(int j = 0; j < 11; j++) {
-						std::cout << directionsMap[(i * 11) + j] << " ";
+				for(int i = 0; i < DIRECTIONS_MAP_SIZE; i++) {
+					for(int j = 0; j < DIRECTIONS_MAP_SIZE; j++) {
+						std::cout << directionsMap[(i * DIRECTIONS_MAP_SIZE) + j] << " ";
 					}
 					std::cout << std::endl;
 				}
@@ -196,6 +202,13 @@ int main(int argc, const char* argv[]) {
 				delete[] directionsMap;
 			}
 		}
+	}
+	std::cout << "Final pixelMap" << std::endl;
+	for(int i = 0; i < PIXEL_MAP_HEIGHT; i++) {
+		for(int j = 0; j < PIXEL_MAP_WIDTH; j++) {
+			std::cout << pixelMap[(i * PIXEL_MAP_WIDTH) + j] << " ";
+		}
+		std::cout << std::endl;
 	}
 	delete[] pixelMap;
 
@@ -228,74 +241,117 @@ int main(int argc, const char* argv[]) {
 	delete[] dataMap;
 }
 
-// Returns nothing, modifies the directionsMap
-void findPaths(unsigned int* pixelMap, int row, int col, int initialRow, int initialCol, bool* visited, 
+// Returns nothing, modifies the directionsMap, setting borders to 1 if a path exists from initial to that border pixel
+void findDirectionsMap(unsigned int* pixelMap, int row, int col, int initialRow, int initialCol, bool* visited, 
 	unsigned int* directionsMap) {
-	if (row < 0 || col < 0 || row >= 11 || col >= 11 || row < initialRow - 5 || row > initialRow + 5 || 
-		col < initialCol - 5 || col > initialCol + 5) {
+	// std::cout << row << " " << col << " " << initialRow << " " << initialCol << std::endl;
+	if (row < 0 || col < 0 || row >= PIXEL_MAP_HEIGHT || col >= PIXEL_MAP_WIDTH || 
+		row < initialRow - DIRECTIONS_MAP_RADIUS || row > initialRow + DIRECTIONS_MAP_RADIUS || 
+		col < initialCol - DIRECTIONS_MAP_RADIUS || col > initialCol + DIRECTIONS_MAP_RADIUS) {
 		return;
-	} else if (visited[(row * 11) + col]) {
+	} else if (visited[((DIRECTIONS_MAP_RADIUS + (row - initialRow)) * DIRECTIONS_MAP_SIZE) + 
+			(DIRECTIONS_MAP_RADIUS + (col - initialCol))]) {
 		return;
-	// } else if (row == 0 && row != initialRow - 5) { // if too close to top, can't check 'up' direction
-	// 	return;
-	// } else if (col == 0 && col != initialCol - 5) { // if too close to left, can't check 'left' direction
-	// 	return;
-	// } else if (row == 11 && row != initialRow + 5) { // if too close to bottom, can't check 'down' direction
-	// 	return;
-	// } else if (col == 11 && col != initialCol + 5) { // if too close to right, can't check 'right' direction
-	// 	return;
-	} else if ((row == initialRow - 5 || row == initialRow + 5 || col == initialCol - 5 || col == initialCol + 5) && 
-		pixelMap[(row * 11) + col]) {
-		visited[(row * 11) + col] = 1;
-		directionsMap[((5 + (row - initialRow)) * 11) + (5 + (col - initialCol))] = 1;
-		// directionsMap[5 + (row - initialRow)][5 + (col - initialCol)] = 1;
-		// directionsMap[(row * 11) + col] = 1; // directionsMap[row][col] = 1
-		return;
-	} else if ((row == initialRow - 5 || row == initialRow + 5 || col == initialCol - 5 || col == initialCol + 5) && 
-		!pixelMap[(row * 11) + col]) {
-		// directionsMap[row][col] = 0;
-		visited[(row * 11) + col] = 1;
-		return;
+	} else if ((row == initialRow - DIRECTIONS_MAP_RADIUS || row == initialRow + DIRECTIONS_MAP_RADIUS
+		|| col == initialCol - DIRECTIONS_MAP_RADIUS || col == initialCol + DIRECTIONS_MAP_RADIUS) && 
+		pixelMap[(row * PIXEL_MAP_WIDTH) + col]) {
+		visited[((DIRECTIONS_MAP_RADIUS + (row - initialRow)) * DIRECTIONS_MAP_SIZE) + 
+			(DIRECTIONS_MAP_RADIUS + (col - initialCol))] = 1;
+		directionsMap[((DIRECTIONS_MAP_RADIUS + (row - initialRow)) * DIRECTIONS_MAP_SIZE) + 
+			(DIRECTIONS_MAP_RADIUS + (col - initialCol))] = 1;
+	} else if ((row == initialRow - DIRECTIONS_MAP_RADIUS || row == initialRow + DIRECTIONS_MAP_RADIUS 
+		|| col == initialCol - DIRECTIONS_MAP_RADIUS || col == initialCol + DIRECTIONS_MAP_RADIUS) && 
+		!pixelMap[(row * PIXEL_MAP_WIDTH) + col]) {
+		visited[((DIRECTIONS_MAP_RADIUS + (row - initialRow)) * DIRECTIONS_MAP_SIZE) + 
+			(DIRECTIONS_MAP_RADIUS + (col - initialCol))] = 1;
 	} else {
-		visited[(row * 11) + col] = 1;
-		if (row - 1 >= 0 && pixelMap[((row - 1) * 11) + col]) {
-			findPaths(pixelMap, row - 1, col, initialRow, initialCol, visited, directionsMap);
+		visited[((DIRECTIONS_MAP_RADIUS + (row - initialRow)) * DIRECTIONS_MAP_SIZE) + 
+			(DIRECTIONS_MAP_RADIUS + (col - initialCol))] = 1;
+		if (row - 1 >= 0 && pixelMap[((row - 1) * PIXEL_MAP_WIDTH) + col]) {
+			findDirectionsMap(pixelMap, row - 1, col, initialRow, initialCol, visited, directionsMap);
 		}
-		if (row + 1 < 11 && pixelMap[((row + 1) * 11) + col]) {
-			findPaths(pixelMap, row + 1, col, initialRow, initialCol, visited, directionsMap);
+		if (row + 1 < PIXEL_MAP_HEIGHT && pixelMap[((row + 1) * PIXEL_MAP_WIDTH) + col]) {
+			findDirectionsMap(pixelMap, row + 1, col, initialRow, initialCol, visited, directionsMap);
 		}
-		if (col - 1 >= 0 && pixelMap[(row * 11) + col - 1]) {
-			findPaths(pixelMap, row, col - 1, initialRow, initialCol, visited, directionsMap);
+		if (col - 1 >= 0 && pixelMap[(row * PIXEL_MAP_WIDTH) + col - 1]) {
+			findDirectionsMap(pixelMap, row, col - 1, initialRow, initialCol, visited, directionsMap);
 		}
-		if (col + 1 < 11 && pixelMap[(row * 11) + col + 1]) {
-			findPaths(pixelMap, row, col + 1, initialRow, initialCol, visited, directionsMap);
+		if (col + 1 < PIXEL_MAP_WIDTH && pixelMap[(row * PIXEL_MAP_WIDTH) + col + 1]) {
+			findDirectionsMap(pixelMap, row, col + 1, initialRow, initialCol, visited, directionsMap);
 		}
-		return;
 	}
+	return;
+}
+
+// Takes directionMap and sets numDirections on pixelMap
+void setNumDirections(unsigned int* pixelMap, int row, int col, unsigned int* directionsMap) {
+	bool lastVisitedTrue = false;
+	unsigned int numDirections = 0;
+	for(int i = 0; i < DIRECTIONS_MAP_SIZE; i++) {
+		if (directionsMap[i]) {
+			if (!lastVisitedTrue) {
+				lastVisitedTrue = true;
+				numDirections++;
+			}
+		} else {
+			lastVisitedTrue = false;
+		}
+	}
+	for(int i = (DIRECTIONS_MAP_SIZE * 2) - 1; i < (DIRECTIONS_MAP_SIZE * DIRECTIONS_MAP_SIZE) - 1; i+= DIRECTIONS_MAP_SIZE) {
+		if (directionsMap[i]) {
+			if (!lastVisitedTrue) {
+				lastVisitedTrue = true;
+				numDirections++;
+			}
+		} else {
+			lastVisitedTrue = false;
+		}
+	}
+	for(int i = (DIRECTIONS_MAP_SIZE * DIRECTIONS_MAP_SIZE) - 1; i >= (DIRECTIONS_MAP_SIZE * (DIRECTIONS_MAP_SIZE - 1)); i--) {
+		if (directionsMap[i]) {
+			if (!lastVisitedTrue) {
+				lastVisitedTrue = true;
+				numDirections++;
+			}
+		} else {
+			lastVisitedTrue = false;
+		}
+	}
+	for(int i = (DIRECTIONS_MAP_SIZE * (DIRECTIONS_MAP_SIZE - 2)); i > 0; i-= DIRECTIONS_MAP_SIZE) {
+		if (directionsMap[i]) {
+			if (!lastVisitedTrue) {
+				lastVisitedTrue = true;
+				numDirections++;
+			}
+		} else {
+			lastVisitedTrue = false;
+		}
+	}
+	pixelMap[(row * PIXEL_MAP_WIDTH) + col] = numDirections;
 }
 
 unsigned int* getPixels() {
 	unsigned int* pixelMap = new unsigned int[121]();
-	for(int i = 0; i < 44; i++) {
+	for(int i = 0; i < 55; i++) {
 		pixelMap[i] = 0;
 	}
-	for(int i = 44; i < 55; i++) {
+	for(int i = 55; i < 66; i++) {
 		pixelMap[i] = 1;
 	}
-	for(int i = 55; i < 121; i++) {
+	for(int i = 66; i < 121; i++) {
 		pixelMap[i] = 0;
 	}
-	// pixelMap[5] = 1;
-	// pixelMap[16] = 1;
-	// pixelMap[27] = 1;
-	// pixelMap[38] = 1;
-	// pixelMap[49] = 1;
-	// pixelMap[60] = 1;
-	// pixelMap[71] = 1;
-	// pixelMap[82] = 1;
-	// pixelMap[93] = 1;
-	// pixelMap[104] = 1;
-	// pixelMap[115] = 1;
+	pixelMap[5] = 1;
+	pixelMap[16] = 1;
+	pixelMap[27] = 1;
+	pixelMap[38] = 1;
+	pixelMap[49] = 1;
+	pixelMap[60] = 1;
+	pixelMap[71] = 1;
+	pixelMap[82] = 1;
+	pixelMap[93] = 1;
+	pixelMap[104] = 1;
+	pixelMap[115] = 1;
 	// {
 	// 	0,0,0,0,0,0,0,0,0,0,0,
 	// 	0,0,0,0,0,0,0,0,0,0,0,
