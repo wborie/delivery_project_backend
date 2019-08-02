@@ -1,0 +1,38 @@
+{
+  "map": {
+    "nodes": [
+      "A",
+      "B",
+      "C"
+    ],
+    "edges": [
+      {
+        "start": "A",
+        "end": "B",
+        "weight": 3
+      },
+      {
+        "start": "A",
+        "end": "C",
+        "weight": 10.1
+      },
+      {
+        "start": "B",
+        "end": "C",
+        "weight": 6
+      }
+    ]
+  },
+  "requests": [
+    {
+      "start": "A",
+      "end": "B",
+      "id": "1"
+    },
+    {
+      "start": "B",
+      "end": "C",
+      "id": "2"
+    }
+  ]
+}
